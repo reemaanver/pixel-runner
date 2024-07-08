@@ -10,6 +10,7 @@ def display_score():
   pygame.draw.rect(screen, '#c0e8ec', score_rect, 10)
   screen.blit(score_surf, score_rect)
   return current_score
+
 def obstacle_movement(obstacle_list):
   if obstacle_list:
     for obs_rect in obstacle_list:
@@ -25,11 +26,24 @@ def obstacle_movement(obstacle_list):
     return obstacle_list
   else: 
     return []
+
 def collision(player_rect, obstacle_list):
   for obs in obstacle_list:
     if obs.colliderect(player_rect):
       return False
   return True
+
+def player_animation():
+  global player_surface, player_index
+  if player_rect.bottom < 300:
+    # jump
+    player_surface = player_jump
+  else:
+    # walk
+    player_index += 0.1
+    if player_index >= len(player_walk):
+      player_index = 0
+    player_surface = player_walk[int(player_index)]
 
 pygame.init()
 screen = pygame.display.set_mode((800, 400))
@@ -44,12 +58,25 @@ sky_surface = pygame.image.load('graphics/Sky.png').convert()
 ground_surface = pygame.image.load('graphics/ground.png').convert()
 
 # obstacles
+# # 1.Snails
+# snail_1 = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
+# snail_2 = pygame.image.load('graphics/snail/snail2.png').convert_alpha()
+
+# # 2.Flies
+# fly_1 = pygame.image.load('graphics/Fly/Fly1.png').convert_alpha()
+# fly_2 = pygame.image.load('graphics/Fly/Fly2.png').convert_alpha()
 snail_surface = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
 fly_surface = pygame.image.load('graphics/Fly/Fly1.png').convert_alpha()
 
 obstacle_rect_list = []
 
-player_surface = pygame.image.load('graphics/Player/player_walk_1.png').convert_alpha()
+player_walk_1 = pygame.image.load('graphics/Player/player_walk_1.png').convert_alpha()
+player_walk_2 = pygame.image.load('graphics/Player/player_walk_2.png').convert_alpha()
+player_walk = [player_walk_1, player_walk_2]
+player_index = 0
+player_jump = pygame.image.load('graphics/Player/jump.png').convert_alpha()
+
+player_surface = player_walk[player_index]
 player_rect = player_surface.get_rect(midbottom = (80, 300))
 player_gravity = 0 
 
@@ -104,6 +131,7 @@ while True:
     player_rect.y += player_gravity
     if player_rect.bottom >= 300:
       player_rect.bottom = 300
+    player_animation()
     screen.blit(player_surface, player_rect)
 
     # obstacle logic
