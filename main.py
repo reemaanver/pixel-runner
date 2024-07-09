@@ -5,6 +5,7 @@ from random import randint, choice
 class Player(pygame.sprite.Sprite):
   def __init__(self):
     super().__init__()
+
     player_walk_1 = pygame.image.load('graphics/Player/player_walk_1.png').convert_alpha()
     player_walk_2 = pygame.image.load('graphics/Player/player_walk_2.png').convert_alpha()
     self.player_walk = [player_walk_1, player_walk_2]
@@ -15,9 +16,13 @@ class Player(pygame.sprite.Sprite):
     self.rect = self.image.get_rect(midbottom = (80, 300))
     self.gravity = 0
 
+    self.jump_sound = pygame.mixer.Sound('audio/jump.mp3')
+    self.jump_sound.set_volume(0.3)
+
   def player_input(self):
     keys = pygame.key.get_pressed()
     if keys[pygame.K_SPACE] and self.rect.bottom >= 300:
+      self.jump_sound.play()
       self.gravity = -20
 
   def apply_gravity(self):
@@ -43,6 +48,7 @@ class Player(pygame.sprite.Sprite):
 class Obstacle(pygame.sprite.Sprite):
   def __init__(self, type):
     super().__init__()
+
     if type == 'fly':
       fly_1 = pygame.image.load('graphics/Fly/Fly1.png').convert_alpha()
       fly_2 = pygame.image.load('graphics/Fly/Fly2.png').convert_alpha()
@@ -98,6 +104,12 @@ game_active = False
 start_time = 0
 score = 0
 
+# bg sound
+bg_sound = pygame.mixer.Sound('audio/music.wav')
+bg_sound.set_volume(0.1)
+bg_sound.play(loops = -1)
+
+# Groups
 player = pygame.sprite.GroupSingle()
 player.add(Player())
 
@@ -123,11 +135,12 @@ pygame.time.set_timer(obstacle_timer, 1500)
 
 
 while True:
-  for event in pygame.event.get():
+  for event in pygame.event.get():    
+    if event.type == pygame.QUIT:
+      pygame.quit()
+      exit()
+
     if game_active:
-      if event.type == pygame.QUIT:
-        pygame.quit()
-        exit()
       if event.type == obstacle_timer:
           obstacle_group.add(Obstacle(choice(['fly', 'snail', 'snail', 'snail'])))
      
@@ -135,6 +148,7 @@ while True:
       if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
           game_active = True
           start_time = pygame.time.get_ticks() // 1000 
+          pygame.mixer.unpause()
      
   if game_active:
     screen.blit(sky_surface, (0,0))
@@ -157,8 +171,11 @@ while True:
     screen.blit(game_name, game_name_rect)
     screen.blit(player_stand, player_stand_rect)
 
+    pygame.mixer.pause()
+
     score_message = text_font.render(f'Your score: {score}', False, (111, 196, 169))
     score_message_rect = score_message.get_rect(center = (400, 330))
+
     if score != 0: screen.blit(score_message, score_message_rect)
     else: screen.blit(game_message, game_message_rect)
     
